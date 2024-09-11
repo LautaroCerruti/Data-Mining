@@ -1,2 +1,3 @@
 # Data-Mining
-Código de la materia TMD 2024
+TMD subject code
+Done in R using Jupyter notebooks
