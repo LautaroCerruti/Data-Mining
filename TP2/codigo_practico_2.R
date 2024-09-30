@@ -113,7 +113,7 @@ backward.ranking <- function(x, y, method, verbosity=0, ...) {
 # verbosity: nivel de detalle en los mensajes impresos
 # output:
 # ranked.features: índices de las características ordenadas por importancia
-filter.kruskal_ranking <- function(x, y, verbosity = 0) {
+kruskal.ranking <- function(x, y, verbosity = 0) {
   max.feat <- dim(x)[2]  # total de features
   statistics <- double(max.feat)  # vector para almacenar los p-valores de cada característica
   
@@ -134,6 +134,45 @@ filter.kruskal_ranking <- function(x, y, verbosity = 0) {
   
   return(ranked.features)
 }
+
+# Función para selección de características usando Recursive Feature Elimination (RFE)
+# input:
+# x: matriz de features
+# y: vector de respuesta
+# method: función para entrenar un modelo que calcule la importancia de las características
+# ...: parámetros adicionales para el método 'method'
+# verbosity: nivel de detalle en los mensajes impresos
+# output:
+# ranked.features: índices de las características seleccionadas, ordenadas de más a menos importante
+rfe.ranking <- function(x, y, method, verbosity = 0, ...) {
+  p <- dim(x)[2]  # total de features
+  list.feat <- 1:p
+  R <- c()
+  for(i in 1:p) {
+	model <- do.call(method, c(list(x[, list.feat, drop = FALSE], y), list(...)))
+	least.important <- model$feats[1]
+
+	if (verbosity > 1) {
+      cat("\nIteration with", length(list.feat), "features.")
+	  cat("\nFeatures: ", list.feat)
+	  cat("\nFeatures indexes: ", model$feats)
+      cat("\nFeature importances: ", model$imp)
+      cat("\nRemoving feature: ", list.feat[least.important], "\n")
+    }
+
+	R[p-i+1] <- list.feat[least.important]
+	list.feat <- list.feat[-least.important]
+  }
+
+  if (verbosity > 0) {
+	cat("\n---------\nRanked features: ", R, "\n")
+  }
+
+  return(R)
+}
+
+
+
 
 #---------------------------------------------------------------------------
 #random forest error estimation (OOB) for greedy search
@@ -215,7 +254,9 @@ FORW.lda<-forward.ranking(iris[,-5],iris[,5],method="lda.est")
 BACK.rf <-backward.ranking(iris[,-5],iris[,5],method="rf.est", tot.trees=100,equalize.classes=F)
 BACK.lda<-backward.ranking(iris[,-5],iris[,5],method="lda.est")
 
-ranking.kruskal <- filter.kruskal_ranking(iris[,-5], iris[,5], verbosity = 1)
+ranking.kruskal <- kruskal.ranking(iris[,-5], iris[,5])
+
+RFE.rf <- rfe.ranking(iris[,-5], iris[,5],method="imp.rf", verbosity=3)
 
 #---------------------------------------------------------------------------
 #Codigo con datasets de ejemplo y para el TP2
