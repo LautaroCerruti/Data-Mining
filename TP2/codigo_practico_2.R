@@ -106,6 +106,35 @@ backward.ranking <- function(x, y, method, verbosity=0, ...) {
 	return(final.feat)
 }
 
+# Función para la selección de características usando el test Kruskal-Wallis
+# input:
+# x: matriz de features
+# y: vector de respuesta (debe ser categórico para Kruskal-Wallis)
+# verbosity: nivel de detalle en los mensajes impresos
+# output:
+# ranked.features: índices de las características ordenadas por importancia
+filter.kruskal_ranking <- function(x, y, verbosity = 0) {
+  max.feat <- dim(x)[2]  # total de features
+  statistics <- double(max.feat)  # vector para almacenar los p-valores de cada característica
+  
+  # Para cada característica, aplico el test Kruskal-Wallis y guardo el p-valor
+  for (i in 1:max.feat) {
+    feature <- x[, i]
+    statistics[i] <- kruskal.test(feature ~ y)$statistic
+    if (verbosity > 1) cat("\nFeature ", i, " statistic: ", statistics[i])
+  }
+  
+  # Ordeno las características según el p-valor (menor p-valor es mayor importancia)
+  ranked.features <- order(statistics, decreasing=T)
+  
+  if (verbosity > 0) {
+    cat("\n---------\nRanked features: ", ranked.features)
+    cat("\nStatictics: ", statistics[ranked.features], "\n")
+  }
+  
+  return(ranked.features)
+}
+
 #---------------------------------------------------------------------------
 #random forest error estimation (OOB) for greedy search
 #---------------------------------------------------------------------------
@@ -180,11 +209,13 @@ library(MASS)
 
 #demo: aplicar el wrapper a los datos de iris
 data(iris)
-FORW.rf <-forward.ranking(iris[,-5],iris[,5],method="rf.est", verbosity=3,tot.trees=100,equalize.classes=F)
+FORW.rf <-forward.ranking(iris[,-5],iris[,5],method="rf.est",tot.trees=100,equalize.classes=F)
 FORW.lda<-forward.ranking(iris[,-5],iris[,5],method="lda.est")
 
-BACK.rf <-backward.ranking(iris[,-5],iris[,5],method="rf.est",verbosity=3, tot.trees=100,equalize.classes=F)
+BACK.rf <-backward.ranking(iris[,-5],iris[,5],method="rf.est", tot.trees=100,equalize.classes=F)
 BACK.lda<-backward.ranking(iris[,-5],iris[,5],method="lda.est")
+
+ranking.kruskal <- filter.kruskal_ranking(iris[,-5], iris[,5], verbosity = 1)
 
 #---------------------------------------------------------------------------
 #Codigo con datasets de ejemplo y para el TP2
