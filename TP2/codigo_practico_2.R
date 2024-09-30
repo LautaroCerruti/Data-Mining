@@ -13,7 +13,6 @@
 #-------------------------------------------------------------------------------------
 forward.ranking <- function(x,y,method,verbosity=0,... )
 {
-
 	max.feat<-dim(x)[2]		#total de features
 	num.feat<-1				#numero actual de features
 	list.feat<-1:max.feat   #lista para guardar los features elegidos, inicializo como llegaron
@@ -58,9 +57,54 @@ forward.ranking <- function(x,y,method,verbosity=0,... )
 	}
 
  	return(list.feat)
-
 }
 
+backward.ranking <- function(x, y, method, verbosity=0, ...) {
+	max.feat <- dim(x)[2]      # total de features
+	num.feat <- max.feat       # número actual de features
+	list.feat <- 1:max.feat    # lista para guardar los features elegidos, inicializo con todos
+	final.feat <- c()
+	
+	# Inicialmente, entreno el modelo con todas las variables y mido el error
+	x.train <- x
+	class.error <- double(max.feat)  # inicializo el vector para guardar el error de cada modelo
+	full.error <- do.call(method, c(list(x.train, y), list(...)))
+	
+	if (verbosity > 1) cat("\nInitial error with all features: ", full.error, "\n")
+
+	# Loop principal. En cada paso, elimino una variable, entreno el modelo y mido el error.
+	while (num.feat > 1) {
+		class.error <- double(num.feat)
+		
+		# Para cada variable que queda, la elimino, entreno el modelo y mido el error.
+		for (i in 1:num.feat) {
+			features <- list.feat[-i]  # quito una variable
+			x.train <- x[, features,drop=F]
+			class.error[i] <- do.call(method, c(list(x.train, y), list(...)))
+		}
+		
+		if (verbosity > 2) cat("\nFeatures:\n", list.feat, "\nErrors:\n", class.error)
+		
+		# Me quedo con la eliminación que minimiza el aumento del error.
+		worst.index <- which.min(class.error)
+		if (verbosity > 1) cat("\n---------\nStep ", max.feat - num.feat + 1, "\nFeature removed: ", list.feat[worst.index], "\n")
+		
+		final.feat <- c(final.feat, list.feat[worst.index])
+		list.feat <- list.feat[-worst.index]  # elimino el feature de la lista
+		num.feat <- num.feat - 1  # actualizo el número de features
+		
+		if (verbosity > 2) cat("\nNew feature list: ", list.feat)
+	}
+
+	final.feat <- rev(c(final.feat, list.feat[1]))
+	
+	if (verbosity > 1) {
+		cat("\n---------\nFinal ranking ")
+		cat("\nFeatures: ", final.feat, "\n")
+	}
+	
+	return(final.feat)
+}
 
 #---------------------------------------------------------------------------
 #random forest error estimation (OOB) for greedy search
@@ -136,9 +180,11 @@ library(MASS)
 
 #demo: aplicar el wrapper a los datos de iris
 data(iris)
-FORW.rf <-forward.ranking(iris[,-5],iris[,5],method="rf.est" ,tot.trees=100,equalize.classes=F)
+FORW.rf <-forward.ranking(iris[,-5],iris[,5],method="rf.est", verbosity=3,tot.trees=100,equalize.classes=F)
 FORW.lda<-forward.ranking(iris[,-5],iris[,5],method="lda.est")
 
+BACK.rf <-backward.ranking(iris[,-5],iris[,5],method="rf.est",verbosity=3, tot.trees=100,equalize.classes=F)
+BACK.lda<-backward.ranking(iris[,-5],iris[,5],method="lda.est")
 
 #---------------------------------------------------------------------------
 #Codigo con datasets de ejemplo y para el TP2
