@@ -9,7 +9,6 @@
 # ... parametros extra para el metodo method
 #output:
 #list.feat <-numero de orden de importancia de las variables, primero la mas relevante
-
 #-------------------------------------------------------------------------------------
 forward.ranking <- function(x,y,method,verbosity=0,... )
 {
@@ -28,7 +27,7 @@ forward.ranking <- function(x,y,method,verbosity=0,... )
 	list.feat[1]<-which.min(class.error)
 	keep.feat<-sort(class.error,decreasing=FALSE,index=T)$ix[-1]
 
-	if(verbosity>1) cat("\nFirst feature: ",list.feat[1],"\n")
+	if(verbosity>2) cat("\nFirst feature: ",list.feat[1],"\n")
 
     #loop principal. A cada paso agrego todas las variables disponibles, de a una, le mido el error y me quedo con la de minimo error. Hasta llegar a meter todas.
 	while(num.feat<max.feat){
@@ -251,18 +250,17 @@ data(iris)
 FORW.rf <-forward.ranking(iris[,-5],iris[,5],method="rf.est",tot.trees=100,equalize.classes=F)
 FORW.lda<-forward.ranking(iris[,-5],iris[,5],method="lda.est")
 
-BACK.rf <-backward.ranking(iris[,-5],iris[,5],method="rf.est", tot.trees=100,equalize.classes=F)
+BACK.rf <-backward.ranking(iris[,-5],iris[,5],method="rf.est", verbosity = 3, tot.trees=100,equalize.classes=F)
 BACK.lda<-backward.ranking(iris[,-5],iris[,5],method="lda.est")
 
 ranking.kruskal <- kruskal.ranking(iris[,-5], iris[,5])
 
-RFE.rf <- rfe.ranking(iris[,-5], iris[,5],method="imp.rf", verbosity=3)
+RFE.rf <- rfe.ranking(iris[,-5], iris[,5],method="imp.rf")
 
 #---------------------------------------------------------------------------
 #Codigo con datasets de ejemplo y para el TP2
 #---------------------------------------------------------------------------
 #hacer una funcion que cree datos, 2 clases (-1 y 1,n puntos de cada una), d dimensiones, de ruido uniforme [-1,1], con la clase al azar
-
 crea.ruido.unif<-function(n=100,d=2){
 x<-runif(2*n*d,min=-1)	#genero los datos
 dim(x)<-c(2*n,d)
