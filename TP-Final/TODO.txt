@@ -1,0 +1,2 @@
+haver visualizacion pero con las variables mas importantes
+buscar los clusters que dijieron los metodos de cantidad de clusters
