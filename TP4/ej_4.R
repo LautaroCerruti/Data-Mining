@@ -106,6 +106,9 @@ k_fold_cv_svm_polinomial <- function(data, column, folds, c, gamma, k, num_folds
 
 start_time <- Sys.time()
 
+cat("Starting\n")
+flush.console()
+
 RRL <- RRL[sample(1:nrow(RRL)), ]
 
 test_indices <- sample(1:nrow(RRL), size = (0.2 * nrow(RRL)))
@@ -168,8 +171,8 @@ results_rrl_svmrbf <- data.frame(Cost = numeric(),
                       Error = numeric(),
                       stringsAsFactors = FALSE)
 
-costs <- c(1, 10, 100, 1000, 10000, 100000)
-gammas <- c(0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1, 10)
+costs <- c(0.00001, 0.0001, 0.001, 0.01, 0.1, 1, 10, 100, 1000, 10000, 100000)
+gammas <- c(0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1, 10)
 num_folds <- 5
 folds <- cut(seq(1, nrow(train)), breaks = num_folds, labels = FALSE)
 
@@ -188,8 +191,8 @@ save(results_rrl_svmrbf, file = "results_rrl_svmrbf.RData")
 
 results_rrl_svmp <- data.frame(Cost = numeric(), Gamma = numeric(), Degree = integer(), Error = numeric(), stringsAsFactors = FALSE)
 
-costs <- c(1, 10, 100, 1000, 10000, 100000)
-gammas <- c(0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1, 10)
+costs <- c(0.00001, 0.0001, 0.001, 0.01, 0.1, 1, 10, 100, 1000, 10000, 100000)
+gammas <- c(0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1, 10)
 degrees <- 1:5
 num_folds <- 5
 folds <- cut(seq(1, nrow(train)), breaks = num_folds, labels = FALSE)
@@ -201,7 +204,7 @@ for(i in 1:length(costs)) {
       results_rrl_svmp <- rbind(results_rrl_svmp, data.frame(Cost = costs[i], Gamma = gammas[j], Degree = degrees[k], Error = error_kfold))
 
 	  elapsed_time <- as.numeric(Sys.time() - start_time, units = "secs")
-	  cat("SVM RBF - cost", costs[i], "- gamma", gammas[j], "- degree", degrees[k], "- time", elapsed_time, "segundos \n")
+	  cat("SVM P - cost", costs[i], "- gamma", gammas[j], "- degree", degrees[k], "- time", elapsed_time, "segundos \n")
 	  flush.console()
     }
   }
